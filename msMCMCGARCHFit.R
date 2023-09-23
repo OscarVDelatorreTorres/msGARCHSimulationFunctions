@@ -1,5 +1,5 @@
 
-msMCMCGARCHFit=function(eq,Data,numberMCMC=10000,numberBurn=500,GARCHmodels=c("sGARCH","sGARCH"),pdfFunct=c("norm","norm"),experiment="",timeFixed=FALSE){
+msMCMCGARCHFit=function(eq=EQ,data=Data,numberMCMC=10000,numberBurn=500,GARCHmodels=c("sGARCH","sGARCH"),pdfFunct=c("norm","norm"),experiment="",timeFixed=FALSE){
 
   #outputData=Data
 
@@ -24,13 +24,17 @@ msMCMCGARCHFit=function(eq,Data,numberMCMC=10000,numberBurn=500,GARCHmodels=c("s
   num_VarsStep=nrow(coeficientesStepWise)
   name_VarsStep=rownames(coeficientesStepWise)
 
-
+# Coefficients tbale in DBTable
   DBTable=data.frame(
     Date=as.character(tail(Data$Date,1)),
-    Value=rep(0,length(variables)),
+    Value=step.model$coefficients,
     Ticker="factor model coefs",
     Experiment=experiment
   )
+
+# Forecast in DBTable:
+
+  meanForecast=tail(step.model$fitted.values,1)
 
   for (numVar in 1:nrow(DBTable)){
 
@@ -56,7 +60,7 @@ msMCMCGARCHFit=function(eq,Data,numberMCMC=10000,numberBurn=500,GARCHmodels=c("s
                 ),
                 data.frame(
                   Date=as.character(tail(Data$Date,1)),
-                  Value=tail(step.model$fitted.values,1),
+                  Value=meanForecast,
                   Ticker="Return Forecast at t",
                   Experiment=experiment
                 )
@@ -263,6 +267,12 @@ DBTable=rbind(DBTable,
                                   "elapsed time message"),
                          Experiment=experiment)
                )
+
+# LLF etimation from data:
+
+  sigmaLLF=pred1$vol[1]
+  muLLF=meanForecast
+
 
   MSGARCHResults=list(
     outputData=Data,
