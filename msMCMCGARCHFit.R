@@ -86,11 +86,57 @@ msMCMCGARCHFit=function(eq,Data,numberMCMC=10000,numberBurn=500,GARCHmodels=c("s
 
 # Estimates the MSGARH model:
 
-print(paste0("Estimating MS-GARCH model for", experiment,", date: ",tail(Data$Date)))
+print(paste0("Estimating MS-GARCH (EM method) model for experiment ", experiment,", date: ",tail(Data$Date,1)))
+
+# ML estimation:
+
+fittedMSGARCHD = tryCatch(FitML(spec = MSspec, data = residuals) ,
+                          error=function(e) NULL)
+
+if (!is.null(fittedMSGARCHD)){
+
+  meltedCoefsTable=melt(fittedMSGARCHD$Inference$MatCoef)
+  # Parameters coefficients:
+  DBTable=rbind(DBTable,
+                data.frame(Date=as.character(tail(Data$Date,1)),
+                           Value=meltedCoefsTable$value,
+                           Ticker=paste0(meltedCoefsTable$Var1,"-",meltedCoefsTable$Var2),
+                           Experiment=experiment
+                )
+  )
+  # AIC values:
+  DBTable=rbind(DBTable,
+                data.frame(Date=as.character(tail(Data$Date,1)),
+                           Value=summary(fittedMSGARCHD)$AIC,
+                           Ticker="AIC-ML estimation",
+                           Experiment=experiment
+                            )
+                )
+  # estimation method
+  DBTable=rbind(DBTable,
+                data.frame(Date=as.character(tail(Data$Date,1)),
+                           Value="EM",
+                           Ticker="MSGARCH estimation method",
+                           Experiment=experiment
+                            )
+                )
+
+MLestimation=TRUE
+} else {
+
+MLestimation=FALSE
+}
+
+
+# MCMC estimation:
+
+if (!isTRUE(MLestimation)){
+
+print(paste0("Estimating MS-GARCH (MCMC method) model for", experiment,", date: ",tail(Data$Date,1)))
 
   fittedMSGARCHD = tryCatch(FitMCMC(spec = MSspec, data = residuals,
                                     ctr=list(nburn=numberBurn,nmcmc=numberMCMC)) ,
-                           error=function(e) NULL)
+                            error=function(e) NULL)
 
   if (!is.null(fittedMSGARCHD)){
 
@@ -98,21 +144,32 @@ print(paste0("Estimating MS-GARCH model for", experiment,", date: ",tail(Data$Da
     # Parameters coefficients:
     DBTable=rbind(DBTable,
                   data.frame(Date=as.character(tail(Data$Date,1)),
-                       Value=meltedCoefsTable$value,
-                       Ticker=paste0(meltedCoefsTable$Var1,"-",meltedCoefsTable$Var2),
-                       Experiment=experiment
-                              )
+                             Value=meltedCoefsTable$value,
+                             Ticker=paste0(meltedCoefsTable$Var1,"-",meltedCoefsTable$Var2),
+                             Experiment=experiment
+                  )
     )
     # DIC values:
     DBTable=rbind(DBTable,
                   data.frame(Date=as.character(tail(Data$Date,1)),
                              Value=summary(fittedMSGARCHD)$DIC,
-                             Ticker="DIC",
+                             Ticker="DIC-MCMC estimation",
+                             Experiment=experiment
+                  )
+    )
+
+    # estimation method
+    DBTable=rbind(DBTable,
+                  data.frame(Date=as.character(tail(Data$Date,1)),
+                             Value="MCMC",
+                             Ticker="MSGARCH estimation method",
                              Experiment=experiment
                   )
     )
 
   }
+
+}
 
 # Generating the Smoothed, transtition and forecasted probabilities for model 1:
 
@@ -124,7 +181,13 @@ print(paste0("Estimating regime-specific smoothed probs. ","norm","-","norm"," (
 Smooth.probs1 = State(fittedMSGARCHD)$SmoothProb[,1, 1:MSspec$K, drop = TRUE]
 
 # Transition probability matrix:
-transprob1=summary(fittedMSGARCHD)$post.trans.mat
+
+if (isTRUE(MLestimation)){
+  transprob1=summary(fittedMSGARCHD)$trans.mat
+} else {
+  transprob1=summary(fittedMSGARCHD)$post.trans.mat
+}
+
 
 # Forecasted prpbabilities:
 
@@ -202,8 +265,8 @@ DBTable=rbind(DBTable,
                )
 
   MSGARCHResults=list(
-    outputData=outputData,
-    probsDBtable=DBTable,
+    outputData=Data,
+    outPutDBtable=DBTable,
     elapsTimeMsg=elapsTimeMsg,
     elapsTime=tiempoPasado
   )
