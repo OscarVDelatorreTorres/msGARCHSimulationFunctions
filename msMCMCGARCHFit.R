@@ -45,6 +45,22 @@ msMCMCGARCHFit=function(eq=EQ,data=Data,numberMCMC=10000,numberBurn=500,GARCHmod
 
   }
 
+  if (tail(datos$Return,1)>0){
+    returnScenarioText="Bullish"
+    returnScenario=1
+  } else {
+    returnScenarioText="Bearish"
+    returnScenario=-1
+  }
+
+  if (meanForecast>0){
+    expectedReturnScenarioText="Bullish"
+    expectedReturnScenario=1
+  } else {
+    expectedReturnScenarioText="Bearish"
+    expectedReturnScenario=-1
+  }
+
   DBTable=rbind(DBTable,
                 data.frame(
                   Date=as.character(tail(Data$Date,1)),
@@ -62,6 +78,30 @@ msMCMCGARCHFit=function(eq=EQ,data=Data,numberMCMC=10000,numberBurn=500,GARCHmod
                   Date=as.character(tail(Data$Date,1)),
                   Value=meanForecast,
                   Ticker="Return Forecast at t",
+                  Experiment=experiment
+                ),
+                data.frame(
+                  Date=as.character(tail(Data$Date,1)),
+                  Value=returnScenario,
+                  Ticker="Return scenario",
+                  Experiment=experiment
+                ),
+                data.frame(
+                  Date=as.character(tail(Data$Date,1)),
+                  Value=returnScenarioText,
+                  Ticker="Return scenario text",
+                  Experiment=experiment
+                ),
+                data.frame(
+                  Date=as.character(tail(Data$Date,1)),
+                  Value=expectedReturnScenario,
+                  Ticker="Expected return scenario",
+                  Experiment=experiment
+                ),
+                data.frame(
+                  Date=as.character(tail(Data$Date,1)),
+                  Value=expectedReturnScenarioText,
+                  Ticker="Expected return scenario text",
                   Experiment=experiment
                 )
   )
@@ -213,6 +253,43 @@ DBTable=rbind(DBTable,
            )
 )
 
+
+
+if (expectedReturnScenario>0){
+  if (Predprobs1[1,2]<=0.5){
+    msTradingScenario=1
+    msTradingScenarioText="normal bullish"
+    msVolatilityScenarioText="normal"
+    msVolatilityScenario=1
+  } else {
+    msTradingScenario=2
+    msTradingScenarioText="crisis bullish"
+    msVolatilityScenarioText="crisis"
+    msVolatilityScenario=2
+  }
+} else {
+  if (Predprobs1[1,2]<=0.5){
+    msTradingScenario=3
+    msTradingScenarioText="normal bearish"
+    msVolatilityScenarioText="normal"
+    msVolatilityScenario=1
+  } else {
+    msTradingScenario=4
+    msTradingScenarioText="crisis bearish"
+    msVolatilityScenarioText="crisis"
+    msVolatilityScenario=2
+  }
+}
+
+DBTable=rbind(DBTable,
+              data.frame(
+                Date=as.character(tail(Data$Date,1)),
+                Value=c(msTradingScenario,msTradingScenarioText,msVolatilityScenario,msVolatilityScenarioText),
+                Ticker=c("MS trading scenario","MS trading scenario text","MS volatility scenario","MS volatility scenario text"),
+                Experiment=experiment
+              )
+)
+
 # Estimates forecasted volatility and VaR at t:
 
 cat("\f")
@@ -253,24 +330,7 @@ DBTable=rbind(DBTable,
               )
 )
 
-# Closes the code:
-  tiempoPasado=as.numeric(Sys.time()-startCalculation)
-
-  elapsTimeMsg=paste0("Estimation elapsed time: ",
-                      round(tiempoPasado/360,0),
-                      ":",
-                      round(tiempoPasado/60,0),":",
-                      round(tiempoPasado,3))
-  DBTable=rbind(DBTable,
-               data.frame(Date=as.character(tail(Data$Date,1)),
-                         Value=c(tiempoPasado,
-                                 elapsTimeMsg),
-                         Ticker=c("elapsed time",
-                                  "elapsed time message"),
-                         Experiment=experiment)
-               )
-
-# LLF estimation from data:
+# general model LLF and AIC estimation from data:
 
   sigmaLLF=pred1$vol[1]
   muLLF=meanForecast
@@ -279,32 +339,85 @@ DBTable=rbind(DBTable,
 
   switch(llfFunct,
          "norm"={
+  kMS=sum(fittedMSGARCHD$spec$n.params)
+
   logLikelihoodF=sum(dnorm(residuals,mean=0,sd=sigmaLLF,log=TRUE))
+  aicCrit=(2*kMS)-(2*logLikelihoodF)
     },
          "std"={
-  coefsMS=as.data.frame(summary(fittedMSGARCHD)$summary )
-  stableProbs=summary(fittedMSGARCHD)$post.stable.prob
+
+ if (isTRUE(MLestimation)){
+   # for ML models:
+   coefsMS=as.data.frame(summary(fittedMSGARCHD)$estimate)
+   stableProbs=summary(fittedMSGARCHD)$stable.prob
+ } else {
+   # for MCMC models:
+   coefsMS=as.data.frame(summary(fittedMSGARCHD)$summary )
+   stableProbs=summary(fittedMSGARCHD)$post.stable.prob
+ }
+
 
   nuMS=c(coefsMS[which(rownames(coefsMS)=="nu_1"),1],
          coefsMS[which(rownames(coefsMS)=="nu_2"),2])
   nuMS=as.numeric(nuMS%*%stableProbs)
 
-  logLikelihoodF=sum(dt((residuals/sigmaLLF),df=nuMS,log=TRUE))
+  kMS=sum(fittedMSGARCHD$spec$n.params)
 
+  logLikelihoodF=sum(dstd((residuals/1),mean=0,sd=sigmaLLF,nu=nuMS,log=TRUE))
+  aicCrit=(2*kMS)-(2*logLikelihoodF)
          },
          "ged"={
-  coefsMS=as.data.frame(summary(fittedMSGARCHD)$summary )
-  stableProbs=summary(fittedMSGARCHD)$post.stable.prob
+           if (isTRUE(MLestimation)){
+             # for ML models:
+             coefsMS=as.data.frame(summary(fittedMSGARCHD)$estimate)
+             stableProbs=summary(fittedMSGARCHD)$stable.prob
+           } else {
+             # for MCMC models:
+             coefsMS=as.data.frame(summary(fittedMSGARCHD)$summary )
+             stableProbs=summary(fittedMSGARCHD)$post.stable.prob
+           }
 
   nuMS=c(coefsMS[which(rownames(coefsMS)=="nu_1"),1],
          coefsMS[which(rownames(coefsMS)=="nu_2"),2])
   nuMS=as.numeric(nuMS%*%stableProbs)
 
+  kMS=sum(fittedMSGARCHD$spec$n.params)
+
   logLikelihoodF=sum(dged(residuals,mean=0,sd=sigmaLLF,nu=nuMS,log=TRUE))
+  aicCrit=(2*kMS)-(2*logLikelihoodF)
          }
   )
 
 
+  DBTable=rbind(DBTable,
+                data.frame(Date=as.character(tail(Data$Date,1)),
+                           Value=c(logLikelihoodF,
+                                   aicCrit,
+                                   kMS),
+                           Ticker=c("general LLF",
+                                    "general Akaike",
+                                    "number of parameters"),
+                           Experiment=experiment)
+  )
+
+  # Closes the code:
+  tiempoPasado=as.numeric(Sys.time()-startCalculation)
+
+  elapsTimeMsg=paste0("Estimation elapsed time: ",
+                      round(tiempoPasado/360,0),
+                      ":",
+                      round(tiempoPasado/60,0),":",
+                      round(tiempoPasado,3))
+  DBTable=rbind(DBTable,
+                data.frame(Date=as.character(tail(Data$Date,1)),
+                           Value=c(tiempoPasado,
+                                   elapsTimeMsg),
+                           Ticker=c("elapsed time",
+                                    "elapsed time message"),
+                           Experiment=experiment)
+  )
+
+# Creating the output list object:
   MSGARCHResults=list(
     outputData=Data,
     outPutDBtable=DBTable,
@@ -315,6 +428,7 @@ DBTable=rbind(DBTable,
   cat("\f")
   print(elapsTimeMsg)
 
+# Return object:
   return(MSGARCHResults)
 
 }
