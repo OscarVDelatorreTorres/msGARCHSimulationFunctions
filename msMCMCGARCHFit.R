@@ -289,7 +289,7 @@ DBTable=rbind(DBTable,
          coefsMS[which(rownames(coefsMS)=="nu_2"),2])
   nuMS=as.numeric(nuMS%*%stableProbs)
 
-  logLikelihoodF=sum(dt(residuals,df=nuMS,log=TRUE))
+  logLikelihoodF=sum(dt((residuals/sigmaLLF),df=nuMS,log=TRUE))
 
          },
          "ged"={
