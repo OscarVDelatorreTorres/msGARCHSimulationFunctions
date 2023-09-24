@@ -182,7 +182,9 @@ cat("\f")
 print(paste0("Estimating regime-specific smoothed probs. ","norm","-","norm"," (model 1 of 6). (",experiment,"-",GARCHmodels,")"))
 
 # Smoothed probabilites:
-Smooth.probs1 = State(fittedMSGARCHD)$SmoothProb[,1, 1:MSspec$K, drop = TRUE]
+stateMS=State(fittedMSGARCHD)
+
+Smooth.probs1 = stateMS$SmoothProb[,1, 1:MSspec$K, drop = TRUE]
 
 # Transition probability matrix:
 
@@ -268,10 +270,39 @@ DBTable=rbind(DBTable,
                          Experiment=experiment)
                )
 
-# LLF etimation from data:
+# LLF estimation from data:
 
   sigmaLLF=pred1$vol[1]
   muLLF=meanForecast
+
+  llfFunct=pdfFunct[1]
+
+  switch(llfFunct,
+         "norm"={
+  logLikelihoodF=sum(dnorm(residuals,mean=0,sd=sigmaLLF,log=TRUE))
+    },
+         "std"={
+  coefsMS=as.data.frame(summary(fittedMSGARCHD)$summary )
+  stableProbs=summary(fittedMSGARCHD)$post.stable.prob
+
+  nuMS=c(coefsMS[which(rownames(coefsMS)=="nu_1"),1],
+         coefsMS[which(rownames(coefsMS)=="nu_2"),2])
+  nuMS=as.numeric(nuMS%*%stableProbs)
+
+  logLikelihoodF=sum(dt(residuals,df=nuMS,log=TRUE))
+
+         },
+         "ged"={
+  coefsMS=as.data.frame(summary(fittedMSGARCHD)$summary )
+  stableProbs=summary(fittedMSGARCHD)$post.stable.prob
+
+  nuMS=c(coefsMS[which(rownames(coefsMS)=="nu_1"),1],
+         coefsMS[which(rownames(coefsMS)=="nu_2"),2])
+  nuMS=as.numeric(nuMS%*%stableProbs)
+
+  logLikelihoodF=sum(dged(residuals,mean=0,sd=sigmaLLF,nu=nuMS,log=TRUE))
+         }
+  )
 
 
   MSGARCHResults=list(
