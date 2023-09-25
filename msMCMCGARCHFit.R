@@ -215,6 +215,7 @@ print(paste0("Estimating MS-GARCH (MCMC method) model for", experiment,", date: 
 
 }
 
+
 # Generating the Smoothed, transtition and forecasted probabilities for model 1:
 
 cat("\f")
@@ -253,42 +254,133 @@ DBTable=rbind(DBTable,
            )
 )
 
+#  Actual return and actual smooth probability regime:
 
+if (tail(Data$Return,1)>0){
+  if (tail(Smooth.probs1[,2],1)<=0.5){
+    msTradingScenarioActual=1
+    msTradingScenarioTextActual="normal bullish"
+    msVolatilityScenarioTextActual="normal"
+    msVolatilityScenarioActual=1
+  } else {
+    msTradingScenarioActual=2
+    msTradingScenarioTextActual="crisis bullish"
+    msVolatilityScenarioTextActual="crisis"
+    msVolatilityScenarioActual=2
+  }
+} else {
+  if (tail(Smooth.probs1[,2],1)<=0.5){
+    msTradingScenarioActual=3
+    msTradingScenarioTextActual="normal bearish"
+    msVolatilityScenarioTextActual="normal"
+    msVolatilityScenarioActual=1
+  } else {
+    msTradingScenarioActual=4
+    msTradingScenarioTextActual="crisis bearish"
+    msVolatilityScenarioTextActual="crisis"
+    msVolatilityScenarioActual=2
+  }
+}
+
+# Expected return and actual smooth probability forecasted regimes:
+
+if (expectedReturnScenario>0){
+  if (tail(Smooth.probs1[,2],1)<=0.5){
+    msTradingScenarioF1=1
+    msTradingScenarioTextF1="normal bullish"
+    msVolatilityScenarioTextF1="normal"
+    msVolatilityScenarioF1=1
+  } else {
+    msTradingScenarioF1=2
+    msTradingScenarioTextF1="crisis bullish"
+    msVolatilityScenarioTextF1="crisis"
+    msVolatilityScenarioF1=2
+  }
+} else {
+  if (tail(Smooth.probs1[,2],1)<=0.5){
+    msTradingScenarioF1=3
+    msTradingScenarioTextF1="normal bearish"
+    msVolatilityScenarioTextF1="normal"
+    msVolatilityScenarioF1=1
+  } else {
+    msTradingScenarioF1=4
+    msTradingScenarioTextF1="crisis bearish"
+    msVolatilityScenarioTextF1="crisis"
+    msVolatilityScenarioF1=2
+  }
+}
+
+# Expected return  and t+1 forecasted smooth probability forecasted regimes:
 
 if (expectedReturnScenario>0){
   if (Predprobs1[1,2]<=0.5){
-    msTradingScenario=1
-    msTradingScenarioText="normal bullish"
-    msVolatilityScenarioText="normal"
-    msVolatilityScenario=1
+    msTradingScenarioF2=1
+    msTradingScenarioTextF2="normal bullish"
+    msVolatilityScenarioTextF1F2="normal"
+    msVolatilityScenarioF2=1
   } else {
-    msTradingScenario=2
-    msTradingScenarioText="crisis bullish"
-    msVolatilityScenarioText="crisis"
-    msVolatilityScenario=2
+    msTradingScenarioF2=2
+    msTradingScenarioTextF2="crisis bullish"
+    msVolatilityScenarioTextF2="crisis"
+    msVolatilityScenarioF2=2
   }
 } else {
   if (Predprobs1[1,2]<=0.5){
-    msTradingScenario=3
-    msTradingScenarioText="normal bearish"
-    msVolatilityScenarioText="normal"
-    msVolatilityScenario=1
+    msTradingScenarioF2=3
+    msTradingScenarioTextF2="normal bearish"
+    msVolatilityScenarioTextF2="normal"
+    msVolatilityScenarioF2=1
   } else {
-    msTradingScenario=4
-    msTradingScenarioText="crisis bearish"
-    msVolatilityScenarioText="crisis"
-    msVolatilityScenario=2
+    msTradingScenarioF2=4
+    msTradingScenarioTextF2="crisis bearish"
+    msVolatilityScenarioTextF2="crisis"
+    msVolatilityScenarioF2=2
   }
 }
 
 DBTable=rbind(DBTable,
               data.frame(
                 Date=as.character(tail(Data$Date,1)),
-                Value=c(msTradingScenario,msTradingScenarioText,msVolatilityScenario,msVolatilityScenarioText),
-                Ticker=c("MS trading scenario","MS trading scenario text","MS volatility scenario","MS volatility scenario text"),
+                Value=c(msTradingScenarioActual,
+                        msTradingScenarioTextActual,
+                        msVolatilityScenarioActual,
+                        msVolatilityScenarioTextActual),
+                Ticker=c("MS trading scenario Actual",
+                         "MS trading scenario text Actual",
+                         "MS volatility scenario Actual",
+                         "MS volatility scenario text Actual"),
+                Experiment=experiment
+              ),
+
+              data.frame(
+                Date=as.character(tail(Data$Date,1)),
+                Value=c(msTradingScenarioF1,
+                        msTradingScenarioTextF1,
+                        msVolatilityScenarioF1,
+                        msVolatilityScenarioTextF1),
+                Ticker=c("MS trading scenario Actual vol forecast",
+                         "MS trading scenario text Actual vol forecast",
+                         "MS volatility scenario Actual vol forecast",
+                         "MS volatility scenario text Actual vol forecast"),
+                Experiment=experiment
+              ),
+
+              data.frame(
+                Date=as.character(tail(Data$Date,1)),
+                Value=c(msTradingScenarioF2,
+                        msTradingScenarioTextF2,
+                        msVolatilityScenarioF2,
+                        msVolatilityScenarioTextF2),
+                Ticker=c("MS trading scenario all Forecast",
+                         "MS trading scenario text all Forecast",
+                         "MS volatility scenario all Forecast",
+                         "MS volatility scenario text all Forecast"),
                 Experiment=experiment
               )
 )
+
+
+
 
 # Estimates forecasted volatility and VaR at t:
 
