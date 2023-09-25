@@ -218,8 +218,6 @@ print(paste0("Estimating MS-GARCH (MCMC method) model for", experiment,", date: 
 
 # Generating the Smoothed, transtition and forecasted probabilities for model 1:
 
-cat("\f")
-
 print(paste0("Estimating regime-specific smoothed probs. ","norm","-","norm"," (model 1 of 6). (",experiment,"-",GARCHmodels,")"))
 
 # Smoothed probabilites:
@@ -384,7 +382,6 @@ DBTable=rbind(DBTable,
 
 # Estimates forecasted volatility and VaR at t:
 
-cat("\f")
 print(paste0("Estimating expected volatility at t. (",experiment,"-",GARCHmodels,")"))
 
 pred1 <- predict(fittedMSGARCHD, nahead = 5, do.return.draws = FALSE)
