@@ -316,7 +316,7 @@ if (expectedReturnScenario>0){
   if (Predprobs1[1,2]<=0.5){
     msTradingScenarioF2=1
     msTradingScenarioTextF2="normal bullish"
-    msVolatilityScenarioTextF1F2="normal"
+    msVolatilityScenarioTextF2="normal"
     msVolatilityScenarioF2=1
   } else {
     msTradingScenarioF2=2
