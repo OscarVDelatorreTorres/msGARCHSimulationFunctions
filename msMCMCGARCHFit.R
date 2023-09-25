@@ -218,7 +218,7 @@ print(paste0("Estimating MS-GARCH (MCMC method) model for", experiment,", date: 
 
 # Generating the Smoothed, transtition and forecasted probabilities for model 1:
 
-print(paste0("Estimating regime-specific smoothed probs. ","norm","-","norm"," (model 1 of 6). (",experiment,"-",GARCHmodels,")"))
+print(paste0("Estimating regime-specific smoothed probs. ","norm","-","norm"," (model ",b,"). (",experiment,"-",GARCHmodels,")"))
 
 # Smoothed probabilites:
 stateMS=State(fittedMSGARCHD)
