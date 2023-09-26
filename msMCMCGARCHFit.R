@@ -525,5 +525,5 @@ DBTable=rbind(DBTable,
 
 # Return object:
   return(MSGARCHResults)
-
+ 
 }
