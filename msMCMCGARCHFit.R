@@ -133,7 +133,7 @@ msMCMCGARCHFit=function(eq=EQ,data=Data,numberMCMC=10000,numberBurn=500,GARCHmod
 print(paste0("Estimating MS-GARCH (EM method) model for experiment ", experiment,", date: ",tail(Data$Date,1)))
 
 # ML estimation:
-
+simmethod="E-M"
 fittedMSGARCHD = tryCatch(FitML(spec = MSspec, data = residuals) ,
                           error=function(e) NULL)
 
@@ -177,7 +177,7 @@ MLestimation=FALSE
 if (!isTRUE(MLestimation)){
 
 print(paste0("Estimating MS-GARCH (MCMC method) model for", experiment,", date: ",tail(Data$Date,1)))
-
+  simmethod="MCMC"
   fittedMSGARCHD = tryCatch(FitMCMC(spec = MSspec, data = residuals,
                                     ctr=list(nburn=numberBurn,nmcmc=numberMCMC)) ,
                             error=function(e) NULL)
@@ -511,7 +511,8 @@ DBTable=rbind(DBTable,
     outputData=Data,
     outPutDBtable=DBTable,
     elapsTimeMsg=elapsTimeMsg,
-    elapsTime=tiempoPasado
+    elapsTime=tiempoPasado,
+    simMethod=simmethod
   )
 
   cat("\f")
