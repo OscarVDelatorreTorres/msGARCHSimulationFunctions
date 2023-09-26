@@ -385,7 +385,12 @@ DBTable=rbind(DBTable,
 print(paste0("Estimating expected volatility at t. (",experiment,"-",GARCHmodels,")"))
 
 pred1 <- predict(fittedMSGARCHD, nahead = 5, do.return.draws = FALSE)
+checkNARisk=which(is.na(pred1$vol))
 
+
+if (length(checkNARisk)>0){
+  pred1$vol=na.locf(pred1$vol)
+}
 
 DBTable=rbind(DBTable,
               data.frame(
@@ -398,26 +403,26 @@ DBTable=rbind(DBTable,
 
 # Estimates CVaR
 
-RiskPred=Risk(fittedMSGARCHD,alpha=c(0.02,0.05),nahead=5)
+#RiskPred=Risk(fittedMSGARCHD,alpha=c(0.02,0.05),data=data$Return,nahead=5)
 
 # Risk forecast table:
 
-DBTable=rbind(DBTable,
-              data.frame(Date=as.character(tail(Data$Date,1)),
-                         Value=c(RiskPred$VaR[,1],
-                                 RiskPred$VaR[,2]),
-                         Ticker=c(paste0("VaR 98% t+",seq(1,5)),
-                                  paste0("VaR 95% t+",seq(1,5))),
-                         Experiment=experiment
-                          ),
-              data.frame(Date=as.character(tail(Data$Date,1)),
-                         Value=c(RiskPred$ES[,1],
-                                 RiskPred$ES[,2]),
-                         Ticker=c(paste0("CVaR 98% t+",seq(1,5)),
-                                  paste0("CVaR 95% t+",seq(1,5))),
-                         Experiment=experiment
-              )
-)
+#DBTable=rbind(DBTable,
+ #             data.frame(Date=as.character(tail(Data$Date,1)),
+  #                       Value=c(RiskPred$VaR[,1],
+   #                              RiskPred$VaR[,2]),
+    #                     Ticker=c(paste0("VaR 98% t+",seq(1,5)),
+     #                             paste0("VaR 95% t+",seq(1,5))),
+      #                   Experiment=experiment
+       #                   ),
+        #      data.frame(Date=as.character(tail(Data$Date,1)),
+         #                Value=c(RiskPred$ES[,1],
+          #                       RiskPred$ES[,2]),
+           #              Ticker=c(paste0("CVaR 98% t+",seq(1,5)),
+            #                      paste0("CVaR 95% t+",seq(1,5))),
+             #            Experiment=experiment
+        #      )
+#)
 
 # general model LLF and AIC estimation from data:
 
