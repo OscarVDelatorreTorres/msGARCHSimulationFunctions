@@ -1,4 +1,4 @@
-
+ 
 msMCMCGARCHFit=function(eq=EQ,data=Data,numberMCMC=10000,numberBurn=500,GARCHmodels=c("sGARCH","sGARCH"),pdfFunct=c("norm","norm"),experiment="",timeFixed=FALSE){
 
   #outputData=Data
