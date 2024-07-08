@@ -111,7 +111,7 @@ emMCMCMSGARCHFit=function(eq,data,numberMCMC=10000,numberBurn=500,GARCHmodels=c(
                 )
   )
   
-  # Estimates the E-M MS-GARCH model as a first step:====
+# Estimates the E-M MS-GARCH model as a first step:====
   
   # Extract the residuals from the model:
   residuals=step.model$residuals
@@ -415,12 +415,10 @@ print(paste0("Estimating expected volatility at t. (",experiment,"-",GARCHmodels
                   data.frame(Date=as.character(tail(data$Date,1)),
                              Value=c(logLikelihoodF,
                                      aicCrit,
-                                     kMS,
-                                     AIC(fittedMSGARCHD)),
+                                     kMS),
                              Ticker=c("general LLF",
                                       "general Akaike",
-                                      "number of parameters",
-                                      "AIC E-M estimation"),
+                                      "number of parameters"),
                              Experiment=experiment)
     )      
     
@@ -447,18 +445,18 @@ print("E-M estimation not feasible. Estimating with MCMC method instead...")
                              Experiment=experiment
                   )
     )
-    # AIC values:
+    # DIC values:
     DBTable=rbind(DBTable,
                   data.frame(Date=as.character(tail(data$Date,1)),
-                             Value=summary(fittedMSGARCHD)$AIC,
-                             Ticker="AIC-ML estimation",
+                             Value=summary(fittedMSGARCHD)$DIC,
+                             Ticker="DIC-MCMC estimation",
                              Experiment=experiment
                   )
     )
     # estimation method
     DBTable=rbind(DBTable,
                   data.frame(Date=as.character(tail(data$Date,1)),
-                             Value="EM",
+                             Value="MCMC",
                              Ticker="MSGARCH estimation method",
                              Experiment=experiment
                   )
@@ -686,12 +684,10 @@ print(paste0("Estimating expected volatility at t. (",experiment,"-",GARCHmodels
                   data.frame(Date=as.character(tail(data$Date,1)),
                              Value=c(logLikelihoodF,
                                      aicCrit,
-                                     kMS,
-                                     DIC(fittedMSGARCHD)$DIC),
+                                     kMS),
                              Ticker=c("general LLF",
                                       "general Akaike",
-                                      "number of parameters",
-                                      "DIC MCMC estimation"),
+                                      "number of parameters"),
                              Experiment=experiment)
     )      
     
