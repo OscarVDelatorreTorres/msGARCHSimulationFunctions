@@ -1,5 +1,5 @@
  
-msMCMCGARCHFit=function(eq=EQ,data=Data,numberMCMC=10000,numberBurn=500,GARCHmodels=c("sGARCH","sGARCH"),pdfFunct=c("norm","norm"),experiment="",timeFixed=FALSE){
+msMCMCGARCHFit=function(eq,data,numberMCMC=10000,numberBurn=500,GARCHmodels=c("sGARCH","sGARCH"),pdfFunct=c("norm","norm"),experiment="",timeFixed=FALSE){
 
   #outputData=Data
 
@@ -11,6 +11,10 @@ msMCMCGARCHFit=function(eq=EQ,data=Data,numberMCMC=10000,numberBurn=500,GARCHmod
   words=words[-1]
   num_words <- length(words)
 
+  # Column with the dependent variable in the data.frame:
+  depVar=strsplit(eq,"~")[[1]][1]
+  depVarPos=which(colnames(data)==depVar)
+  
   variables=c("(Intercept)",words)
   variablesValues=rep(0,num_words)
 
@@ -45,7 +49,7 @@ msMCMCGARCHFit=function(eq=EQ,data=Data,numberMCMC=10000,numberBurn=500,GARCHmod
 
   }
 
-  if (tail(datos$Return,1)>0){
+  if (tail(data[depVarPos],1)>0){
     returnScenarioText="Bullish"
     returnScenario=1
   } else {
@@ -63,43 +67,37 @@ msMCMCGARCHFit=function(eq=EQ,data=Data,numberMCMC=10000,numberBurn=500,GARCHmod
 
   DBTable=rbind(DBTable,
                 data.frame(
-                  Date=as.character(tail(Data$Date,1)),
-                  Value=tail(datos$Settle,1),
-                  Ticker="Price at t",
-                  Experiment=experiment
-                ),
-                data.frame(
-                  Date=as.character(tail(Data$Date,1)),
-                  Value=tail(datos$Return,1),
+                  Date=as.character(tail(data$Date,1)),
+                  Value=as.numeric(tail(data[depVarPos],1)),
                   Ticker="Return at t",
                   Experiment=experiment
                 ),
                 data.frame(
-                  Date=as.character(tail(Data$Date,1)),
+                  Date=as.character(tail(data$Date,1)),
                   Value=meanForecast,
                   Ticker="Return Forecast at t",
                   Experiment=experiment
                 ),
                 data.frame(
-                  Date=as.character(tail(Data$Date,1)),
+                  Date=as.character(tail(data$Date,1)),
                   Value=returnScenario,
                   Ticker="Return scenario",
                   Experiment=experiment
                 ),
                 data.frame(
-                  Date=as.character(tail(Data$Date,1)),
+                  Date=as.character(tail(data$Date,1)),
                   Value=returnScenarioText,
                   Ticker="Return scenario text",
                   Experiment=experiment
                 ),
                 data.frame(
-                  Date=as.character(tail(Data$Date,1)),
+                  Date=as.character(tail(data$Date,1)),
                   Value=expectedReturnScenario,
                   Ticker="Expected return scenario",
                   Experiment=experiment
                 ),
                 data.frame(
-                  Date=as.character(tail(Data$Date,1)),
+                  Date=as.character(tail(data$Date,1)),
                   Value=expectedReturnScenarioText,
                   Ticker="Expected return scenario text",
                   Experiment=experiment
