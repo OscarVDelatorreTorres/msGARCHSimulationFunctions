@@ -137,7 +137,7 @@ emMCMCMSGARCHFit=function(eq,data,numberMCMC=10000,numberBurn=500,GARCHmodels=c(
   }
   
   # Estimates the MSGARH E-M model:
-  
+  cat("\f")
 print(paste0("Estimating MS-GARCH (EM method) model for experiment ", experiment,", date: ",tail(data$Date,1)))
   
 # ML estimation:
@@ -333,7 +333,7 @@ print(paste0("Estimating MS-GARCH (EM method) model for experiment ", experiment
     )
     
 # Estimates forecasted volatility and VaR at t:
-    
+    cat("\f")   
 print(paste0("Estimating expected volatility at t. (",experiment,"-",GARCHmodels,")"))
     
     pred1 <- predict(fittedMSGARCHD, nahead = 5, do.return.draws = FALSE)
@@ -428,6 +428,7 @@ print(paste0("Estimating expected volatility at t. (",experiment,"-",GARCHmodels
 # The case in which is necessary to use MCMC estimation:====
   
 if (is.null(fittedMSGARCHD)){
+  cat("\f")
 print("E-M estimation not feasible. Estimating with MCMC method instead...")
   
   simmethod="MCMC"
@@ -616,7 +617,7 @@ print("E-M estimation not feasible. Estimating with MCMC method instead...")
     )
     
 # Estimates forecasted volatility and VaR at t:
-    
+    cat("\f")
 print(paste0("Estimating expected volatility at t. (",experiment,"-",GARCHmodels,")"))
     
     pred1 <- predict(fittedMSGARCHD, nahead = 5, do.return.draws = FALSE)
@@ -721,6 +722,7 @@ output=list(msGarchFittedModel=fittedMSGARCHD,
             meanEqR2=meanEqR2,
             maenEqSigma=maenEqSigma
             )
+cat("\f")
 print(paste0("MS-GARCH estimation concluded with ",simmethod," method. ",elapsTimeMsg))
 # Returns the output object:
 return(output)
