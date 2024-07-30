@@ -28,8 +28,8 @@ emMCMCMSGARCHFit=function(eq,data,numberMCMC=10000,numberBurn=500,GARCHmodels=c(
   meanEqR2=summary(full.model)$adj.r.squared
   maenEqSigma=summary(full.model)$sigma
   # Stepwise regression model
-  step.model <- stepAIC(full.model, direction = "both", trace = FALSE)
-  
+  #step.model <- stepAIC(full.model, direction = "forward", trace = F)
+  step.model=full.model
   coeficientesStepWise=summary(step.model)$coefficients
   
   num_VarsStep=nrow(coeficientesStepWise)
