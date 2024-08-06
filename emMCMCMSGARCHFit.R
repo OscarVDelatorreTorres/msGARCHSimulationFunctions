@@ -1,10 +1,23 @@
-library(DescTools)
-library(MASS)
-library(data.table)
-library(fGarch)
-library(openxlsx)
-library(MSGARCH)
-library(zoo)
+if (!require(fGarch)){install.packages("fGarch") 
+  require(fGarch)} else {require(fGarch)}
+
+if (!require(DescTools)){install.packages("DescTools") 
+  require(DescTools)} else {require(DescTools)}
+
+if (!require(MASS)){install.packages("MASS") 
+  require(MASS)} else {require(MASS)}
+
+if (!require(data.table)){install.packages("data.table") 
+  require(data.table)} else {require(data.table)}
+
+if (!require(openxlsx)){install.packages("openxlsx") 
+  require(openxlsx)} else {require(openxlsx)}
+
+if (!require(MSGARCH)){install.packages("MSGARCH") 
+  require(MSGARCH)} else {require(MSGARCH)}
+
+if (!require(zoo)){install.packages("zoo") 
+  require(zoo)} else {require(zoo)}
 
 emMCMCMSGARCHFit=function(eq,data,numberMCMC=10000,numberBurn=500,GARCHmodels=c("sGARCH","sGARCH"),pdfFunct=c("norm","norm"),experiment="",timeFixed=FALSE){
   # Starts calculation time:
